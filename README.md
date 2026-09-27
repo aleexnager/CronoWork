@@ -1,0 +1,2 @@
+# CronoWork
+Time your exercises
