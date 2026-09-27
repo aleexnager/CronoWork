@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F1217">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CronoWork">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+<!-- artifact:start -->
+<title>CronoWork</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0F1217;
+    --surface: #181C23;
+    --surface-2: #212732;
+    --line: #2C3340;
+    --text: #EEF1F5;
+    --muted: #8E98A8;
+    --prep: #F2B33D;
+    --work: #FF5B3A;
+    --rest: #38B6FF;
+    --done: #B58CFF;
+    --danger: #FF6B6B;
+    --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+    --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.45 var(--body);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    padding-inline: 16px;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--rest); outline-offset: 2px; }
+  svg.i { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* ---------- Setup ---------- */
+  .app { max-width: 480px; margin: 0 auto; padding-block: 20px 40px; display: grid; gap: 22px; }
+  .brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand h1 { margin: 0; font: 700 30px/1 var(--display); letter-spacing: .02em; text-transform: uppercase; }
+  .brand h1 span { color: var(--work); }
+  .loaded { font-size: 13px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); padding: 4px 10px; border-radius: 99px; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 16px; }
+  .field { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 14px; }
+  .field + .field { border-top: 1px solid var(--line); }
+  .field-label { display: grid; gap: 2px; min-width: 0; }
+  .field-label b { font-weight: 600; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+  .field-label b::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--dot, var(--muted)); }
+  .field-label small { color: var(--muted); font-size: 13px; }
+  .field[data-key="work"] { --dot: var(--work); }
+  .field[data-key="rest"] { --dot: var(--rest); }
+  .field[data-key="rounds"] { --dot: var(--text); }
+
+  .stepper { display: flex; align-items: center; gap: 6px; }
+  .step { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); display: grid; place-items: center; user-select: none; -webkit-user-select: none; }
+  .step:active { background: var(--line); }
+  .val { display: flex; align-items: baseline; justify-content: center; width: 86px; }
+  .val input { width: 100%; background: transparent; border: 0; color: var(--text); text-align: right; font: 600 38px/1 var(--display); font-variant-numeric: tabular-nums; padding: 0; }
+  .val input:focus { outline: none; color: var(--prep); }
+  .val span { color: var(--muted); font: 500 18px var(--display); margin-left: 3px; width: 12px; }
+
+  .summary { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; justify-content: space-between; padding: 0 4px; color: var(--muted); font-size: 14px; }
+  .summary strong { color: var(--text); font: 600 26px/1 var(--display); font-variant-numeric: tabular-nums; }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 14px; }
+  .toggle span { display: grid; }
+  .toggle small { color: var(--muted); font-size: 13px; }
+  .switch { appearance: none; -webkit-appearance: none; width: 50px; height: 30px; border-radius: 99px; background: var(--line); position: relative; flex: none; transition: background .2s; cursor: pointer; margin: 0; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--text); transition: transform .2s; }
+  .switch:checked { background: var(--work); }
+  .switch:checked::after { transform: translateX(20px); }
+
+  .start { width: 100%; border: 0; border-radius: var(--radius); background: var(--work); color: #1A0A05; padding: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; font: 700 26px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; box-shadow: 0 10px 30px -12px var(--work); }
+  .start:active { transform: scale(.98); }
+  .start svg.i { width: 26px; height: 26px; fill: currentColor; stroke-width: 0; }
+
+  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .section-head h2 { margin: 0; font: 600 20px/1 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .ghost { background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+  .ghost svg.i { width: 18px; height: 18px; }
+
+  .save-form { display: flex; gap: 8px; }
+  .save-form input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; font: 16px var(--body); }
+  .save-form button { border: 0; border-radius: 10px; background: var(--text); color: var(--bg); padding: 0 16px; font-weight: 600; }
+
+  .routines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .routine { display: flex; align-items: stretch; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .routine .load { flex: 1; min-width: 0; text-align: left; background: transparent; border: 0; padding: 12px 14px; display: grid; gap: 4px; }
+  .routine .name { font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .routine .name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; flex: none; }
+  .routine .meta { display: flex; gap: 10px; align-items: center; font: 500 17px var(--display); color: var(--muted); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+  .routine .meta .w { color: var(--work); }
+  .routine .meta .r { color: var(--rest); }
+  .routine .del { background: transparent; border: 0; border-left: 1px solid var(--line); width: 52px; color: var(--muted); display: grid; place-items: center; font-size: 12px; }
+  .routine .del.armed { background: var(--danger); color: #1a0505; width: 84px; font-weight: 600; }
+  .empty { color: var(--muted); font-size: 14px; margin: 0; }
+  .foot { color: var(--muted); font-size: 13px; margin: 0; }
+
+  /* ---------- Run screen ---------- */
+  .run {
+    --phase: var(--prep);
+    position: fixed; inset: 0; z-index: 10;
+    background: var(--bg);
+    background: color-mix(in srgb, var(--phase) 16%, var(--bg));
+    display: flex; flex-direction: column;
+    padding: calc(env(safe-area-inset-top, 0px) + 18px) 16px calc(env(safe-area-inset-bottom, 0px) + 22px);
+    transition: background-color .35s ease;
+    overflow: hidden;
+  }
+  .run[data-phase="work"] { --phase: var(--work); }
+  .run[data-phase="rest"] { --phase: var(--rest); }
+  .run[data-phase="done"] { --phase: var(--done); }
+  .run-inner { flex: 1; width: 100%; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .run-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .phase { font: 700 clamp(34px, 10vw, 54px)/.95 var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--phase); margin: 0; }
+  .round { font: 600 20px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--text); margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .total { text-align: right; color: var(--muted); font-size: 13px; }
+  .total b { display: block; color: var(--text); font: 600 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+
+  .dial { flex: 1; min-height: 0; display: grid; place-items: center; position: relative; }
+  .dial svg.ring { width: min(100%, 58vh, 440px); height: auto; aspect-ratio: 1; max-width: 100%; transform: rotate(-90deg); }
+  .ring .track { stroke: color-mix(in srgb, var(--text) 10%, transparent); }
+  .ring .bar { stroke: var(--phase); transition: stroke .35s ease; }
+  .digits { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; pointer-events: none; }
+  .digits .num { font: 700 clamp(88px, 30vw, 190px)/.9 var(--display); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .digits .num.long { font-size: clamp(70px, 22vw, 150px); }
+  .digits .sub { font: 600 16px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+  .run.paused .digits .num { opacity: .45; }
+  .run.paused .digits .sub { color: var(--prep); }
+  .run.pulse .digits .num { animation: pulse .35s ease-out; }
+  @keyframes pulse { from { transform: scale(1.06); } to { transform: scale(1); } }
+
+  .next { text-align: center; color: var(--muted); font-size: 15px; min-height: 22px; }
+  .next b { color: var(--text); font-weight: 600; }
+  .controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+  .ctl { justify-self: center; width: 64px; height: 64px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--text) 18%, transparent); background: color-mix(in srgb, var(--text) 6%, transparent); display: grid; place-items: center; }
+  .ctl.armed { width: auto; padding: 0 16px; border-radius: 99px; background: var(--danger); color: #1a0505; border-color: transparent; font-weight: 700; font-size: 14px; }
+  .ctl.main { width: 92px; height: 92px; background: var(--phase); color: #0b0d11; border: 0; transition: background .35s ease; }
+  .ctl.main svg.i { width: 38px; height: 38px; fill: currentColor; stroke-width: 0; }
+  .ctl-label { display: block; text-align: center; font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .done-actions { display: flex; gap: 10px; }
+  .done-actions button { flex: 1; border-radius: var(--radius); padding: 16px; font: 700 20px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; border: 1px solid color-mix(in srgb, var(--text) 18%, transparent); background: transparent; }
+  .done-actions .again { background: var(--done); color: #120a1f; border-color: transparent; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .run, .ring .bar, .ctl.main { transition: none; }
+    .run.pulse .digits .num { animation: none; }
+  }
+</style>
+<!-- artifact:body -->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="5.5" y="4" width="4.5" height="16" rx="1.2"/><rect x="14" y="4" width="4.5" height="16" rx="1.2"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 5l8 7-8 7zM16 5v14"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M6 3h10l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+</svg>
+
+<main class="app" id="setup">
+  <header class="brand">
+    <h1>Crono<span>Work</span></h1>
+    <span class="loaded" id="loaded" hidden></span>
+  </header>
+
+  <section class="panel" aria-label="Intervalo">
+    <div class="field" data-key="work">
+      <div class="field-label"><b>Ejercicio</b><small id="work-hint">tiempo de trabajo</small></div>
+      <div class="stepper">
+        <button class="step" data-key="work" data-dir="-1" aria-label="Restar 5 segundos de ejercicio"><svg class="i"><use href="#i-minus"/></svg></button>
+        <label class="val"><input id="work" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Segundos de ejercicio"><span>s</span></label>
+        <button class="step" data-key="work" data-dir="1" aria-label="Sumar 5 segundos de ejercicio"><svg class="i"><use href="#i-plus"/></svg></button>
+      </div>
+    </div>
+    <div class="field" data-key="rest">
+      <div class="field-label"><b>Descanso</b><small id="rest-hint">entre series</small></div>
+      <div class="stepper">
+        <button class="step" data-key="rest" data-dir="-1" aria-label="Restar 5 segundos de descanso"><svg class="i"><use href="#i-minus"/></svg></button>
+        <label class="val"><input id="rest" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Segundos de descanso"><span>s</span></label>
+        <button class="step" data-key="rest" data-dir="1" aria-label="Sumar 5 segundos de descanso"><svg class="i"><use href="#i-plus"/></svg></button>
+      </div>
+    </div>
+    <div class="field" data-key="rounds">
+      <div class="field-label"><b>Series</b><small>repeticiones del ciclo</small></div>
+      <div class="stepper">
+        <button class="step" data-key="rounds" data-dir="-1" aria-label="Quitar una serie"><svg class="i"><use href="#i-minus"/></svg></button>
+        <label class="val"><input id="rounds" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Número de series"><span></span></label>
+        <button class="step" data-key="rounds" data-dir="1" aria-label="Añadir una serie"><svg class="i"><use href="#i-plus"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <div class="summary">
+    <span id="summary-text">8 series · 7 descansos · 5 s de preparación</span>
+    <span>Total <strong id="summary-total">7:45</strong></span>
+  </div>
+
+  <button class="start" id="start"><svg class="i"><use href="#i-play"/></svg>Empezar</button>
+
+  <section class="panel" aria-label="Opciones">
+    <label class="toggle">
+      <span>Pitidos 3-2-1<small>al final de cada ejercicio y descanso</small></span>
+      <input type="checkbox" class="switch" id="ticks">
+    </label>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="routines-title">
+    <div class="section-head">
+      <h2 id="routines-title">Mis rutinas</h2>
+      <button class="ghost" id="save-toggle"><svg class="i"><use href="#i-save"/></svg>Guardar actual</button>
+    </div>
+    <form class="save-form" id="save-form" hidden>
+      <input id="routine-name" maxlength="40" placeholder="Nombre, p. ej. Piernas martes" aria-label="Nombre de la rutina">
+      <button type="submit">Guardar</button>
+    </form>
+    <ul class="routines" id="routines"></ul>
+    <p class="foot">Toca una rutina para cargarla. Las rutinas se guardan en este dispositivo.</p>
+  </section>
+</main>
+
+<section class="run" id="run" hidden aria-live="polite">
+  <div class="run-inner">
+    <div class="run-top">
+      <div>
+        <p class="phase" id="phase">Prepárate</p>
+        <div class="round" id="round">Serie 1 de 8</div>
+      </div>
+      <div class="total">Restante<b id="remaining">7:45</b></div>
+    </div>
+    <div class="dial">
+      <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="track" cx="100" cy="100" r="92" fill="none" stroke-width="10"/>
+        <circle class="bar" id="bar" cx="100" cy="100" r="92" fill="none" stroke-width="10" stroke-linecap="round"/>
+      </svg>
+      <div class="digits"><div class="num" id="num">5</div><div class="sub" id="sub">segundos</div></div>
+    </div>
+    <div class="next" id="next"></div>
+    <div class="controls" id="controls">
+      <div><button class="ctl" id="stop" aria-label="Salir"><svg class="i"><use href="#i-x"/></svg></button><span class="ctl-label" id="stop-label">Salir</span></div>
+      <div><button class="ctl main" id="toggle" aria-label="Pausar"><svg class="i"><use href="#i-pause" id="toggle-icon"/></svg></button><span class="ctl-label" id="toggle-label">Pausa</span></div>
+      <div><button class="ctl" id="skip" aria-label="Saltar a la siguiente fase"><svg class="i"><use href="#i-skip"/></svg></button><span class="ctl-label">Saltar</span></div>
+    </div>
+    <div class="done-actions" id="done-actions" hidden>
+      <button id="exit">Salir</button>
+      <button class="again" id="again">Repetir</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const PREP = 5;          // cuenta atrás inicial (s)
+  const LOOKAHEAD = 1.5;   // s de audio programado por adelantado
+  const STORE = "cronowork.v1";
+  const LIMITS = { work: [1, 3600, 5], rest: [0, 3600, 5], rounds: [1, 99, 1] };
+  const EXAMPLES = [
+    { id: "ex-tabata", name: "Tabata", work: 20, rest: 10, rounds: 8, example: true },
+    { id: "ex-hiit", name: "HIIT 40/20", work: 40, rest: 20, rounds: 10, example: true },
+    { id: "ex-fuerza", name: "Fuerza, descanso largo", work: 45, rest: 90, rounds: 5, example: true },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (s) => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+
+  // ---------- Estado persistente ----------
+  let state = { cfg: { work: 40, rest: 20, rounds: 8, ticks: true }, routines: EXAMPLES.slice(), loadedId: null };
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (raw) state = Object.assign(state, JSON.parse(raw));
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} };
+  const cfg = state.cfg;
+
+  // ---------- Configuración ----------
+  const clamp = (k, v) => { const [lo, hi] = LIMITS[k]; v = Math.round(Number(v)); return isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo; };
+  const total = (c) => PREP + c.rounds * c.work + (c.rounds - 1) * c.rest;
+
+  function renderCfg() {
+    for (const k of ["work", "rest", "rounds"]) if (document.activeElement !== $(k)) $(k).value = cfg[k];
+    $("work-hint").textContent = cfg.work >= 60 ? fmt(cfg.work) + " min de trabajo" : "tiempo de trabajo";
+    $("rest-hint").textContent = cfg.rest >= 60 ? fmt(cfg.rest) + " min entre series" : cfg.rest === 0 ? "sin descanso" : "entre series";
+    const rests = cfg.rest > 0 ? cfg.rounds - 1 : 0;
+    $("summary-text").textContent = plural(cfg.rounds, "serie", "series") + " · " + plural(rests, "descanso", "descansos") + " · 5 s de preparación";
+    $("summary-total").textContent = fmt(total(cfg));
+    $("ticks").checked = !!cfg.ticks;
+    const r = state.routines.find((x) => x.id === state.loadedId);
+    $("loaded").hidden = !r;
+    if (r) $("loaded").textContent = r.name;
+  }
+  function setCfg(k, v) {
+    cfg[k] = clamp(k, v);
+    const r = state.routines.find((x) => x.id === state.loadedId);
+    if (r && r[k] !== cfg[k]) state.loadedId = null;
+    save(); renderCfg();
+  }
+
+  document.querySelectorAll(".step").forEach((btn) => {
+    const k = btn.dataset.key, dir = Number(btn.dataset.dir);
+    const bump = () => {
+      const step = LIMITS[k][2];
+      const cur = cfg[k];
+      const next = step > 1 ? (dir > 0 ? Math.floor(cur / step) * step + step : Math.ceil(cur / step) * step - step) : cur + dir;
+      setCfg(k, next);
+    };
+    let hold, rep;
+    const stop = () => { clearTimeout(hold); clearInterval(rep); };
+    btn.addEventListener("pointerdown", (e) => { e.preventDefault(); bump(); hold = setTimeout(() => { rep = setInterval(bump, 90); }, 450); });
+    ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => btn.addEventListener(ev, stop));
+    btn.addEventListener("click", (e) => { if (e.detail === 0) bump(); });
+  });
+  for (const k of ["work", "rest", "rounds"]) {
+    const input = $(k);
+    input.addEventListener("focus", () => input.select());
+    input.addEventListener("change", () => setCfg(k, input.value));
+    input.addEventListener("blur", () => setCfg(k, input.value));
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") input.blur(); });
+  }
+  $("ticks").addEventListener("change", (e) => { cfg.ticks = e.target.checked; save(); });
+
+  // ---------- Rutinas ----------
+  function renderRoutines() {
+    const ul = $("routines");
+    ul.innerHTML = "";
+    if (!state.routines.length) {
+      ul.innerHTML = '<li class="empty">Aún no hay rutinas. Ajusta los tiempos y pulsa «Guardar actual».</li>';
+      return;
+    }
+    for (const r of state.routines) {
+      const li = document.createElement("li");
+      li.className = "routine";
+      li.innerHTML =
+        '<button class="load"><span class="name"><span></span></span>' +
+        '<span class="meta"><span class="w"></span><span class="r"></span><span class="x"></span><span class="t"></span></span></button>' +
+        '<button class="del" aria-label="Borrar rutina"><svg class="i"><use href="#i-trash"/></svg></button>';
+      li.querySelector(".name span").textContent = r.name;
+      if (r.example) li.querySelector(".name").insertAdjacentHTML("beforeend", '<span class="tag">Ejemplo</span>');
+      li.querySelector(".w").textContent = r.work + " s";
+      li.querySelector(".r").textContent = r.rest + " s";
+      li.querySelector(".x").textContent = "× " + r.rounds;
+      li.querySelector(".t").textContent = "· " + fmt(total(r));
+      li.querySelector(".load").addEventListener("click", () => {
+        Object.assign(cfg, { work: r.work, rest: r.rest, rounds: r.rounds });
+        state.loadedId = r.id; save(); renderCfg();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      const del = li.querySelector(".del");
+      let armed;
+      del.addEventListener("click", () => {
+        if (!del.classList.contains("armed")) {
+          del.classList.add("armed"); del.textContent = "Borrar";
+          armed = setTimeout(() => { del.classList.remove("armed"); del.innerHTML = '<svg class="i"><use href="#i-trash"/></svg>'; }, 2500);
+          return;
+        }
+        clearTimeout(armed);
+        state.routines = state.routines.filter((x) => x.id !== r.id);
+        if (state.loadedId === r.id) state.loadedId = null;
+        save(); renderRoutines(); renderCfg();
+      });
+      ul.appendChild(li);
+    }
+  }
+  $("save-toggle").addEventListener("click", () => {
+    const f = $("save-form");
+    f.hidden = !f.hidden;
+    if (!f.hidden) $("routine-name").focus();
+  });
+  $("save-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("routine-name").value.trim() || cfg.work + "/" + cfg.rest + " × " + cfg.rounds;
+    const r = { id: "r" + Date.now().toString(36), name, work: cfg.work, rest: cfg.rest, rounds: cfg.rounds };
+    state.routines.unshift(r);
+    state.loadedId = r.id;
+    $("routine-name").value = ""; $("save-form").hidden = true;
+    save(); renderRoutines(); renderCfg();
+  });
+
+  // ---------- Audio ----------
+  let actx = null, master = null;
+  function ensureAudio() {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+    if (!actx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      actx = new AC();
+      master = actx.createGain(); master.gain.value = 0.9;
+      master.connect(actx.destination);
+    }
+    if (actx.state !== "running") actx.resume().catch(() => {});
+    // búfer silencioso: desbloquea el audio en iOS dentro del gesto del usuario
+    const b = actx.createBufferSource(); b.buffer = actx.createBuffer(1, 1, 22050); b.connect(actx.destination); b.start(0);
+  }
+  function tone(freq, when, dur, type = "square", vol = 0.22) {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(vol, when + 0.01);
+    g.gain.setValueAtTime(vol, when + dur - 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    o.connect(g); g.connect(master);
+    o.start(when); o.stop(when + dur + 0.02);
+    return o;
+  }
+  const SOUNDS = {
+    tick: (w) => [tone(880, w, 0.09)],
+    // inicio de serie: dos tonos ascendentes, el último largo
+    go: (w) => [tone(988, w, 0.14), tone(1319, w + 0.17, 0.45)],
+    // inicio de descanso: dos tonos descendentes, más graves
+    rest: (w) => [tone(784, w, 0.2, "triangle", 0.4), tone(523, w + 0.24, 0.5, "triangle", 0.4)],
+    // final: arpegio de fanfarria
+    finish: (w) => {
+      const n = [523, 659, 784, 1047, 784, 1047];
+      const d = [0.13, 0.13, 0.13, 0.28, 0.13, 0.7];
+      let t = w; const out = [];
+      n.forEach((f, i) => { out.push(tone(f, t, d[i], "square", 0.18), tone(f / 2, t, d[i], "triangle", 0.3)); t += d[i] + 0.04; });
+      return out;
+    },
+  };
+
+  // ---------- Motor del temporizador ----------
+  let run = null, raf = 0, loopTimer = 0, wake = null;
+  const now = () => performance.now() / 1000;
+
+  function buildRun(c) {
+    const segs = [{ type: "prep", dur: PREP, round: 1 }];
+    for (let i = 1; i <= c.rounds; i++) {
+      segs.push({ type: "work", dur: c.work, round: i });
+      if (i < c.rounds && c.rest > 0) segs.push({ type: "rest", dur: c.rest, round: i });
+    }
+    let t = 0;
+    for (const s of segs) { s.start = t; t += s.dur; }
+    const ev = [];
+    for (const s of segs) {
+      if (s.type === "prep") { for (let i = 0; i < s.dur; i++) ev.push({ t: s.start + i, k: "tick" }); continue; }
+      ev.push({ t: s.start, k: s.type === "work" ? "go" : "rest" });
+      if (c.ticks && s.dur >= 5) for (let i = 3; i >= 1; i--) ev.push({ t: s.start + s.dur - i, k: "tick" });
+    }
+    ev.push({ t, k: "finish" });
+    ev.sort((a, b) => a.t - b.t);
+    return { segs, total: t, ev, ei: 0, nodes: [], base: 0, t0: now(), running: true, done: false, lastSeg: -1, rounds: c.rounds };
+  }
+  const elapsed = () => run.base + (run.running ? now() - run.t0 : 0);
+  const segAt = (e) => { let i = 0; while (i + 1 < run.segs.length && run.segs[i + 1].start <= e) i++; return i; };
+
+  function stopNodes() {
+    for (const n of run.nodes) { try { n.stop(); } catch (e) {} }
+    run.nodes = [];
+  }
+  function resync() {
+    stopNodes();
+    const e = elapsed();
+    run.ei = run.ev.findIndex((x) => x.t >= e - 0.05);
+    if (run.ei < 0) run.ei = run.ev.length;
+  }
+  function schedule(e) {
+    if (!actx || actx.state !== "running") return;
+    const anchor = actx.currentTime - e;
+    while (run.ei < run.ev.length && run.ev[run.ei].t <= e + LOOKAHEAD) {
+      const x = run.ev[run.ei++];
+      if (x.t < e - 0.25) continue;
+      run.nodes.push(...SOUNDS[x.k](Math.max(actx.currentTime, anchor + x.t)));
+    }
+    if (run.nodes.length > 60) run.nodes = run.nodes.slice(-30);
+  }
+
+  function loop() {
+    if (!run || !run.running) return;
+    const e = elapsed();
+    schedule(e);
+    if (e >= run.total) finish();
+  }
+  function frame() {
+    if (!run) return;
+    render();
+    if (run.running) raf = requestAnimationFrame(frame);
+  }
+
+  const C = 2 * Math.PI * 92;
+  $("bar").style.strokeDasharray = C;
+  const LABEL = { prep: "Prepárate", work: "Ejercicio", rest: "Descanso", done: "Terminado" };
+
+  function render() {
+    const el = $("run");
+    if (run.done) {
+      el.dataset.phase = "done";
+      el.classList.remove("paused");
+      $("phase").textContent = LABEL.done;
+      $("round").textContent = plural(run.rounds, "serie completada", "series completadas");
+      $("remaining").textContent = "0:00";
+      $("num").textContent = fmt(run.total - PREP);
+      $("num").classList.add("long");
+      $("sub").textContent = "tiempo total";
+      $("bar").style.strokeDashoffset = 0;
+      $("next").textContent = "";
+      return;
+    }
+    const e = Math.min(elapsed(), run.total - 0.0001);
+    const i = segAt(e), s = run.segs[i];
+    if (i !== run.lastSeg) {
+      if (run.lastSeg !== -1) {
+        el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse");
+        if (navigator.vibrate) navigator.vibrate(s.type === "work" ? [120, 60, 120] : 300);
+      }
+      run.lastSeg = i;
+      el.dataset.phase = s.type;
+      $("phase").textContent = LABEL[s.type];
+      $("round").textContent = s.type === "rest"
+        ? "Tras serie " + s.round + " de " + run.rounds
+        : "Serie " + s.round + " de " + run.rounds;
+      const n = run.segs[i + 1];
+      $("next").innerHTML = n
+        ? "Siguiente: <b>" + (n.type === "work" ? "Serie " + n.round : "Descanso") + "</b> · " + (n.dur >= 60 ? fmt(n.dur) : n.dur + " s")
+        : "Última serie";
+    }
+    const rem = s.start + s.dur - e;
+    const shown = Math.ceil(rem - 1e-6);
+    const long = shown >= 60;
+    $("num").textContent = long ? fmt(shown) : shown;
+    $("num").classList.toggle("long", long);
+    $("sub").textContent = !run.running ? "en pausa" : long ? "minutos" : shown === 1 ? "segundo" : "segundos";
+    $("bar").style.strokeDashoffset = C * Math.min(1, (e - s.start) / s.dur);
+    $("remaining").textContent = fmt(Math.ceil(run.total - e));
+    el.classList.toggle("paused", !run.running);
+  }
+
+  async function lockScreen() {
+    try { if ("wakeLock" in navigator && !wake) { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; }); } } catch (e) {}
+  }
+  function unlockScreen() { try { if (wake) wake.release(); } catch (e) {} wake = null; }
+
+  function setToggle(running) {
+    $("toggle-icon").setAttribute("href", running ? "#i-pause" : "#i-play");
+    $("toggle").setAttribute("aria-label", running ? "Pausar" : "Continuar");
+    $("toggle-label").textContent = running ? "Pausa" : "Seguir";
+  }
+  function showControls(done) {
+    $("controls").hidden = done;
+    $("done-actions").hidden = !done;
+  }
+
+  function start() {
+    ensureAudio();
+    if (run) stopNodes();
+    run = buildRun(cfg);
+    $("run").hidden = false;
+    document.body.style.overflow = "hidden";
+    showControls(false); setToggle(true); disarmStop();
+    lockScreen();
+    clearInterval(loopTimer); loopTimer = setInterval(loop, 50);
+    loop(); cancelAnimationFrame(raf); frame();
+  }
+  function pause() {
+    if (!run || run.done || !run.running) return;
+    run.base = elapsed(); run.running = false;
+    stopNodes(); setToggle(false); render();
+  }
+  function resume() {
+    if (!run || run.done || run.running) return;
+    ensureAudio();
+    run.t0 = now(); run.running = true;
+    resync(); setToggle(true); lockScreen(); loop(); frame();
+  }
+  function skip() {
+    if (!run || run.done) return;
+    const i = segAt(elapsed());
+    const n = run.segs[i + 1];
+    run.base = n ? n.start : run.total; run.t0 = now();
+    resync();
+    if (run.running) loop();
+    if (run && !run.done) render();
+  }
+  function finish() {
+    run.done = true; run.running = false;
+    clearInterval(loopTimer);
+    unlockScreen();
+    showControls(true);
+    render();
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+  }
+  function exit() {
+    if (run) stopNodes();
+    run = null;
+    clearInterval(loopTimer); cancelAnimationFrame(raf);
+    unlockScreen();
+    $("run").hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  let stopArm = 0;
+  function disarmStop() {
+    clearTimeout(stopArm); stopArm = 0;
+    $("stop").classList.remove("armed");
+    $("stop").innerHTML = '<svg class="i"><use href="#i-x"/></svg>';
+    $("stop-label").textContent = "Salir";
+  }
+  $("stop").addEventListener("click", () => {
+    if (stopArm) { disarmStop(); exit(); return; }
+    $("stop").classList.add("armed"); $("stop").textContent = "¿Salir?";
+    $("stop-label").textContent = "Toca otra vez";
+    stopArm = setTimeout(disarmStop, 2500);
+  });
+  $("start").addEventListener("click", start);
+  $("again").addEventListener("click", start);
+  $("exit").addEventListener("click", exit);
+  $("toggle").addEventListener("click", () => (run && run.running ? pause() : resume()));
+  $("skip").addEventListener("click", skip);
+  document.addEventListener("keydown", (e) => {
+    if (!run || e.target.tagName === "INPUT") return;
+    if (e.code === "Space") { e.preventDefault(); run.done ? start() : run.running ? pause() : resume(); }
+    if (e.key === "Escape") exit();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible" || !run || !run.running) return;
+    if (actx && actx.state !== "running") actx.resume().then(resync).catch(() => {});
+    else resync();
+    lockScreen(); loop(); cancelAnimationFrame(raf); frame();
+  });
+
+  renderCfg();
+  renderRoutines();
+
+  if ("serviceWorker" in navigator && location.protocol === "https:" && window.top === window.self) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
